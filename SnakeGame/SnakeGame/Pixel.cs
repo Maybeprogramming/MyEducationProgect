@@ -20,6 +20,8 @@
 
         public void Draw()
         {
+            Console.ForegroundColor = Color;
+
             for (int x = 0; x < PixelSize; x++)
             {
                 for (int y = 0; y < PixelSize; y++)
@@ -31,8 +33,14 @@
         }
         public void Clear()
         {
-            Console.SetCursorPosition(X, Y);
-            Console.Write(PixelEmpty);
+            for (int x = 0; x < PixelSize; x++)
+            {
+                for (int y = 0; y < PixelSize; y++)
+                {
+                    Console.SetCursorPosition(X * PixelSize + x, Y * PixelSize + y);
+                    Console.Write(PixelEmpty);
+                }
+            }
         }
     }
 }
