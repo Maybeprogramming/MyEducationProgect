@@ -15,8 +15,11 @@ namespace SnakeGame
         private const ConsoleColor BorderColor = ConsoleColor.White;
         private const ConsoleColor HeadColor = ConsoleColor.Blue;
         private const ConsoleColor BodyColor = ConsoleColor.DarkBlue;
+        private const ConsoleColor FoodColor = ConsoleColor.Red;
 
         private const int FrameMs = 250;
+
+        private static readonly Random random = new Random();
 
 
         static void Main()
@@ -25,11 +28,26 @@ namespace SnakeGame
             SetBufferSize(ScreenWidth, ScreenHeight);
             CursorVisible = false;
 
+            StartGame();
+
+            ReadKey();
+        }
+
+
+        static void StartGame()
+        {
+            Clear();
+
+            int score = 0;
+
             DrawBorder();
 
             Direction currentMovement = Direction.Right;
 
-            Snake snake = new Snake(10,5, HeadColor, BodyColor);
+            Snake snake = new Snake(10, 5, HeadColor, BodyColor);
+
+            Pixel food = GenFood(snake);
+            food.Draw();
 
             Stopwatch sw = new Stopwatch();
 
@@ -37,20 +55,58 @@ namespace SnakeGame
             {
                 sw.Restart();
 
+                Direction oldMovement = currentMovement;
+
                 while (sw.ElapsedMilliseconds <= FrameMs)
                 {
-                    currentMovement = ReadMovement(currentMovement);
+                    if (currentMovement == oldMovement)
+                        currentMovement = ReadMovement(currentMovement);
                 }
 
-                snake.Move(currentMovement);
+                if (snake.Head.X == food.X && snake.Head.Y == food.Y)
+                {
+                    snake.Move(currentMovement, true);
+
+                    food = GenFood(snake);
+                    food.Draw();
+                    score++;
+                }
+                else
+                {
+                    snake.Move(currentMovement);
+
+                }
+
+                if (snake.Head.X == MapWidth - 1
+                    || snake.Head.X == 0
+                    || snake.Head.Y == MapHeiht
+                    || snake.Head.Y == 0
+                    || snake.Body.Any(b => b.X == snake.Head.X && b.Y == snake.Head.Y))
+                    break;
             }
 
-            ReadKey();
+            snake.Clear();
+
+            SetCursorPosition(ScreenWidth / 3, ScreenHeight / 2);
+            Write($"Вы проиграли!!! Вы скушали {score} яблок");
         }
+
+        static Pixel GenFood(Snake snake)
+        {
+            Pixel food;
+            do
+            {
+                food = new Pixel(random.Next(1, MapWidth - 2), random.Next(1, MapHeiht - 2), FoodColor);
+            } while (snake.Head.X == food.X && snake.Head.Y == food.Y
+                    || snake.Body.Any(b => b.X == food.X && b.Y == food.Y));
+
+            return food;
+        }
+
 
         static Direction ReadMovement(Direction currentDirection)
         {
-            if(KeyAvailable == false)
+            if (KeyAvailable == false)
             {
                 return currentDirection;
             }

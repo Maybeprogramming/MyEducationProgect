@@ -44,12 +44,16 @@
             }
         }
 
-        public void Move(Direction direction)
+        public void Move(Direction direction, bool eat = false)
         {
             Clear();
 
             Body.Enqueue(new Pixel(Head.X, Head.Y, _bodyColor));
-            Body.Dequeue();
+
+            if (eat == false)
+                Body.Dequeue();
+
+
 
             Head = direction switch
             {
