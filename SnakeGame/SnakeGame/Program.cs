@@ -49,6 +49,8 @@ namespace SnakeGame
             Pixel food = GenFood(snake);
             food.Draw();
 
+            int lagMs = 0;
+
             Stopwatch sw = new Stopwatch();
 
             while (true)
@@ -57,11 +59,13 @@ namespace SnakeGame
 
                 Direction oldMovement = currentMovement;
 
-                while (sw.ElapsedMilliseconds <= FrameMs)
+                while (sw.ElapsedMilliseconds <= FrameMs - lagMs)
                 {
                     if (currentMovement == oldMovement)
                         currentMovement = ReadMovement(currentMovement);
                 }
+
+                sw.Restart();
 
                 if (snake.Head.X == food.X && snake.Head.Y == food.Y)
                 {
@@ -70,6 +74,9 @@ namespace SnakeGame
                     food = GenFood(snake);
                     food.Draw();
                     score++;
+
+                    Task.Run(() => Beep(1200, 200));
+                    
                 }
                 else
                 {
@@ -83,12 +90,17 @@ namespace SnakeGame
                     || snake.Head.Y == 0
                     || snake.Body.Any(b => b.X == snake.Head.X && b.Y == snake.Head.Y))
                     break;
+
+                lagMs = (int)sw.ElapsedMilliseconds;
             }
 
             snake.Clear();
+            food.Clear();
 
             SetCursorPosition(ScreenWidth / 3, ScreenHeight / 2);
             Write($"Вы проиграли!!! Вы скушали {score} яблок");
+
+            Task.Run(() => Beep(200, 500));
         }
 
         static Pixel GenFood(Snake snake)
